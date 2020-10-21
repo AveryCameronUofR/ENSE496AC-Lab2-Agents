@@ -186,6 +186,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         index = gameState.index
         index = index % gameState.getNumAgents()
         maximizingPlayer = False
+        print(index)
         if index == 0:
             currDepth += 1
             maximizingPlayer = True
@@ -199,22 +200,18 @@ class MinimaxAgent(MultiAgentSearchAgent):
         for action in actions:
             successor = gameState.generateSuccessor(index, action)
             successor.currDepth = currDepth
-            successor.index = index
+            successor.index = index + 1
             successors.append((action, self.getAction(successor)))
         
         action = ''
         value = math.inf
         if (maximizingPlayer):
-            value = -(math.inf)
+            value = -value
+        print(value)
+        print(maximizingPlayer)
         for successorAction, successorScore in successors:
             print(successorAction)
-            print(successorScore) 
-            if (successorScore[0] == 'Searched'):
-                successorScore = successorScore[1]
-                value = successorScore
-                action = successorAction
-                break
-            #if(successorScore[0] == 'End'):
+            print(successorScore)
             successorScore = successorScore[1]
             if (maximizingPlayer):
                 if (successorScore > value):
@@ -225,7 +222,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
                     value = successorScore
                     action = successorAction
         #if depth != maxDepth and not state.isWin() and not state.isLose():
-        if currDepth == 0: 
+        if currDepth == 0 and index == 0: 
             return action
         else: 
             return (action, value)
