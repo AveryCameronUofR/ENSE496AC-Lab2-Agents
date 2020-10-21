@@ -154,7 +154,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
     """
     # return the action to get to the score
 
-    def getAction(self, gameState):
+    def getAction(self, gameState, currDepth = -1, index = 0):
         """
         Returns the minimax action from the current gameState using self.depth
         and self.evaluationFunction.
@@ -179,11 +179,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
         """
         "*** YOUR CODE HERE ***"
         import math
-        if not hasattr(gameState, 'currDepth'):
-            gameState.currDepth = -1
-            gameState.index = 0
-        currDepth = gameState.currDepth
-        index = gameState.index
         index = index % gameState.getNumAgents()
         maximizingPlayer = False
         if index == 0:
@@ -196,9 +191,8 @@ class MinimaxAgent(MultiAgentSearchAgent):
         successors = []
         for action in actions:
             successor = gameState.generateSuccessor(index, action)
-            successor.currDepth = currDepth
-            successor.index = index + 1
-            successors.append((action, self.getAction(successor)))
+            tempIndex = index + 1
+            successors.append((action, self.getAction(successor, currDepth, tempIndex)))
         
         action = ''
         value = math.inf
@@ -225,13 +219,66 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     """
     Your minimax agent with alpha-beta pruning (question 3)
     """
-
-    def getAction(self, gameState):
+    import math
+    def getAction(self, gameState, currDepth = -1, index = 0, a = -math.inf, b = math.inf):
         """
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        import math
+        index = index % gameState.getNumAgents()
+        maximizingPlayer = False
+        if index == 0:
+            currDepth += 1
+            maximizingPlayer = True
+        if currDepth == self.depth or gameState.isWin() or gameState.isLose():
+            return ('Complete', self.evaluationFunction(gameState), a, b)
+        
+        actions = gameState.getLegalActions(index)
+        successors = []
+        for action in actions:
+            successor = gameState.generateSuccessor(index, action)
+            tempIndex = index + 1
+            successors.append((action, self.getAction(successor, currDepth, tempIndex)))
+        
+        action = ''
+        value = math.inf
+        if (maximizingPlayer):
+            value = -value
+            alpha = successors[0][1][1]
+            beta = math.inf
+        else:
+            beta = successors[0][1][1]
+            alpha = -math.inf
+        #print(alpha)
+        pruned = False
+        i = 0
+        while (i < len(successors) and not pruned):
+            successor = successors[i]
+            successorAction = successor[0]
+            successorScore = successor[1]
+            successorScore = successorScore[1]
+            if (maximizingPlayer):
+                if (successorScore > value):
+                    value = successorScore
+                    action = successorAction
+                alpha = max(alpha, successorScore)
+            else:
+                if (successorScore < value):
+                    value = successorScore
+                    action = successorAction
+                beta = min(beta, successorScore)
+            if (beta <= alpha):
+                pruned = True
+                break
+            i += 1
+        
+        if currDepth == 0 and index == 0: 
+            return action
+        else:
+            ##print(a)
+            #print(b)
+            return (action, value)
 
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
@@ -239,7 +286,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
       Your expectimax agent (question 4)
     """
 
-    def getAction(self, gameState):
+    def getAction(self, gameState, currDepth = -1, index = 0):
         """
         Returns the expectimax action using self.depth and self.evaluationFunction
 
@@ -249,11 +296,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         "*** YOUR CODE HERE ***"
         import math
         import random
-        if not hasattr(gameState, 'currDepth'):
-            gameState.currDepth = -1
-            gameState.index = 0
-        currDepth = gameState.currDepth
-        index = gameState.index
+        import math
         index = index % gameState.getNumAgents()
         maximizingPlayer = False
         if index == 0:
@@ -263,14 +306,13 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
             return ('Complete', self.evaluationFunction(gameState))
         
         actions = gameState.getLegalActions(index)
-        scores = []
         actionCount = len(actions)
+        
         successors = []
         for action in actions:
             successor = gameState.generateSuccessor(index, action)
-            successor.currDepth = currDepth
-            successor.index = index + 1
-            successors.append((action, self.getAction(successor)))
+            tempIndex = index + 1
+            successors.append((action, self.getAction(successor, currDepth, tempIndex)))
         
         action = ''
         value = math.inf
