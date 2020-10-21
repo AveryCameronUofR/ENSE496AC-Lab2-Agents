@@ -186,14 +186,11 @@ class MinimaxAgent(MultiAgentSearchAgent):
         index = gameState.index
         index = index % gameState.getNumAgents()
         maximizingPlayer = False
-        print(index)
         if index == 0:
             currDepth += 1
             maximizingPlayer = True
-        if currDepth == self.depth:
-            return ('Searched', self.evaluationFunction(gameState))
-        if (gameState.isWin() or gameState.isLose()):
-            return ('End', self.evaluationFunction(gameState))
+        if currDepth == self.depth or gameState.isWin() or gameState.isLose():
+            return ('Complete', self.evaluationFunction(gameState))
         
         actions = gameState.getLegalActions(index)
         successors = []
@@ -207,11 +204,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         value = math.inf
         if (maximizingPlayer):
             value = -value
-        print(value)
-        print(maximizingPlayer)
         for successorAction, successorScore in successors:
-            print(successorAction)
-            print(successorScore)
             successorScore = successorScore[1]
             if (maximizingPlayer):
                 if (successorScore > value):
@@ -221,7 +214,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
                 if (successorScore < value):
                     value = successorScore
                     action = successorAction
-        #if depth != maxDepth and not state.isWin() and not state.isLose():
         if currDepth == 0 and index == 0: 
             return action
         else: 
@@ -255,7 +247,51 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        import math
+        import random
+        if not hasattr(gameState, 'currDepth'):
+            gameState.currDepth = -1
+            gameState.index = 0
+        currDepth = gameState.currDepth
+        index = gameState.index
+        index = index % gameState.getNumAgents()
+        maximizingPlayer = False
+        if index == 0:
+            currDepth += 1
+            maximizingPlayer = True
+        if currDepth == self.depth or gameState.isWin() or gameState.isLose():
+            return ('Complete', self.evaluationFunction(gameState))
+        
+        actions = gameState.getLegalActions(index)
+        scores = []
+        actionCount = len(actions)
+        successors = []
+        for action in actions:
+            successor = gameState.generateSuccessor(index, action)
+            successor.currDepth = currDepth
+            successor.index = index + 1
+            successors.append((action, self.getAction(successor)))
+        
+        action = ''
+        value = math.inf
+        if (maximizingPlayer):
+            value = -value
+            for successorAction, successorScore in successors:
+                successorScore = successorScore[1]
+                if (maximizingPlayer):
+                    if (successorScore > value):
+                        value = successorScore
+                        action = successorAction
+        else:
+            value = 0
+            for successorAction, successorScore in successors:
+                value += successorScore[1]
+            action = actions[random.randint(0,actionCount -1)]
+            value = float(value)/float(actionCount)
+        if currDepth == 0 and index == 0: 
+            return action
+        else: 
+            return (action, value)
 
 
 def betterEvaluationFunction(currentGameState):
