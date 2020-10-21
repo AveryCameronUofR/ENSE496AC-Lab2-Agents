@@ -239,18 +239,15 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         for action in actions:
             successor = gameState.generateSuccessor(index, action)
             tempIndex = index + 1
-            successors.append((action, self.getAction(successor, currDepth, tempIndex)))
+            tempA = a
+            tempB = b
+            successors.append((action, self.getAction(successor, currDepth, tempIndex, tempA, tempB)))
         
         action = ''
         value = math.inf
         if (maximizingPlayer):
             value = -value
-            alpha = successors[0][1][1]
-            beta = math.inf
-        else:
-            beta = successors[0][1][1]
-            alpha = -math.inf
-        #print(alpha)
+        
         pruned = False
         i = 0
         while (i < len(successors) and not pruned):
@@ -262,23 +259,23 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
                 if (successorScore > value):
                     value = successorScore
                     action = successorAction
-                alpha = max(alpha, successorScore)
+                    a = max(a,successorScore)
             else:
                 if (successorScore < value):
                     value = successorScore
                     action = successorAction
-                beta = min(beta, successorScore)
-            if (beta <= alpha):
+                    b = min(b,successorScore)
+            if (b <= a):
                 pruned = True
                 break
             i += 1
-        
         if currDepth == 0 and index == 0: 
             return action
-        else:
-            ##print(a)
-            #print(b)
-            return (action, value)
+        else: 
+            if maximizingPlayer:
+                return (action, value, -math.inf, a)
+            else:
+                return (action, value, b, math.inf)
 
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
