@@ -184,35 +184,29 @@ class MinimaxAgent(MultiAgentSearchAgent):
         if index == 0:
             currDepth += 1
             maximizingPlayer = True
+
+        nextIndex = index + 1
         if currDepth == self.depth or gameState.isWin() or gameState.isLose():
-            return ('Complete', self.evaluationFunction(gameState))
+            return self.evaluationFunction(gameState)
 
         actions = gameState.getLegalActions(index)
         successors = []
         for action in actions:
             successor = gameState.generateSuccessor(index, action)
-            tempIndex = index + 1
-            successors.append(
-                (action, self.getAction(successor, currDepth, tempIndex)))
+            successors.append((action, self.getAction(successor, currDepth, nextIndex)))
 
         action = ''
         value = math.inf
         if (maximizingPlayer):
             value = -value
         for successorAction, successorScore in successors:
-            successorScore = successorScore[1]
-            if (maximizingPlayer):
-                if (successorScore > value):
-                    value = successorScore
-                    action = successorAction
-            else:
-                if (successorScore < value):
-                    value = successorScore
-                    action = successorAction
+            if (maximizingPlayer and successorScore > value) or (not maximizingPlayer and successorScore < value):
+                value=successorScore
+                action=successorAction
         if currDepth == 0 and index == 0:
             return action
         else:
-            return (action, value)
+            return value
 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
@@ -234,45 +228,39 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             valueCheck = -math.inf
             currDepth += 1
             maximizingPlayer = True
-
+        tempIndex = index + 1
         if currDepth == self.depth or gameState.isWin() or gameState.isLose():
-            return ('Complete', self.evaluationFunction(gameState))
+            return self.evaluationFunction(gameState)
 
         successors = []
         actions = gameState.getLegalActions(index)
         for action in actions:
             successor = gameState.generateSuccessor(index, action)
-            tempIndex = index + 1
-            _nextAction, value = self.getAction(successor, currDepth, tempIndex, a, b)
+            value = self.getAction(successor, currDepth, tempIndex, a, b)
             if (maximizingPlayer):
                 valueCheck=max(valueCheck, value)
                 a=max(a, value)
                 if (value > b):
-                    return action, value
+                    return value
             else:
                 valueCheck=min(valueCheck, value)
                 b=min(b, value)
                 if (value < a):
-                    return action, value
+                    return value
             successors.append((action, value))
 
         action=''
         value=math.inf
         if (maximizingPlayer):
-            value=-value
+            value = -math.inf
         for successorAction, successorScore in successors:
-            if (maximizingPlayer):
-                if (successorScore > value):
-                    value=successorScore
-                    action=successorAction
-            else:
-                if (successorScore < value):
-                    value=successorScore
-                    action=successorAction
+            if (maximizingPlayer and successorScore > value) or (not maximizingPlayer and successorScore < value):
+                value=successorScore
+                action=successorAction
         if currDepth == 0 and index == 0:
             return action
         else:
-            return action, value
+            return value
 
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
@@ -297,7 +285,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
             currDepth += 1
             maximizingPlayer=True
         if currDepth == self.depth or gameState.isWin() or gameState.isLose():
-            return ('Complete', self.evaluationFunction(gameState))
+            return self.evaluationFunction(gameState)
 
         actions=gameState.getLegalActions(index)
         actionCount=len(actions)
@@ -306,29 +294,27 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         for action in actions:
             successor=gameState.generateSuccessor(index, action)
             tempIndex=index + 1
-            successors.append(
-                (action, self.getAction(successor, currDepth, tempIndex)))
+            successors.append((action, self.getAction(successor, currDepth, tempIndex)))
 
         action=''
         value=math.inf
         if (maximizingPlayer):
             value=-value
             for successorAction, successorScore in successors:
-                successorScore=successorScore[1]
-                if (maximizingPlayer):
-                    if (successorScore > value):
-                        value=successorScore
-                        action=successorAction
+                successorScore
+                if maximizingPlayer and successorScore > value:
+                    value=successorScore
+                    action=successorAction
         else:
             value=0
             for successorAction, successorScore in successors:
-                value += successorScore[1]
+                value += successorScore
             action=actions[random.randint(0, actionCount - 1)]
             value=float(value)/float(actionCount)
         if currDepth == 0 and index == 0:
             return action
         else:
-            return (action, value)
+            return value
 
 
 def betterEvaluationFunction(currentGameState):
