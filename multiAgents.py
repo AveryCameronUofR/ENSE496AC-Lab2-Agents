@@ -231,51 +231,52 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         if index == 0:
             currDepth += 1
             maximizingPlayer = True
+        
         if currDepth == self.depth or gameState.isWin() or gameState.isLose():
-            return ('Complete', self.evaluationFunction(gameState), a, b)
+            return ('Complete', self.evaluationFunction(gameState))
         
         actions = gameState.getLegalActions(index)
         successors = []
         for action in actions:
             successor = gameState.generateSuccessor(index, action)
             tempIndex = index + 1
-            tempA = a
-            tempB = b
-            successors.append((action, self.getAction(successor, currDepth, tempIndex, tempA, tempB)))
+            action, value = self.getAction(successor, currDepth, tempIndex, a, b)
+            if (maximizingPlayer):
+                if (value > b):
+                    if currDepth == 0 and index == 0: 
+                        return action
+                    else: 
+                        return action, value
+            else:
+                if (value < a):
+                    if currDepth == 0 and index == 0: 
+                        return action
+                    else: 
+                        return action, value
+            if maximizingPlayer:
+                a = max(a,value)
+            else:
+                b = min(b,value)
+            if (action != 'Complete'):
+                successors.append((action, value))
         
         action = ''
         value = math.inf
         if (maximizingPlayer):
             value = -value
-        
-        pruned = False
-        i = 0
-        while (i < len(successors) and not pruned):
-            successor = successors[i]
-            successorAction = successor[0]
-            successorScore = successor[1]
-            successorScore = successorScore[1]
+        for successorAction, successorScore in successors:
             if (maximizingPlayer):
                 if (successorScore > value):
                     value = successorScore
                     action = successorAction
-                    a = max(a,successorScore)
             else:
                 if (successorScore < value):
                     value = successorScore
                     action = successorAction
-                    b = min(b,successorScore)
-            if (b <= a):
-                pruned = True
-                break
-            i += 1
         if currDepth == 0 and index == 0: 
             return action
         else: 
-            if maximizingPlayer:
-                return (action, value, -math.inf, a)
-            else:
-                return (action, value, b, math.inf)
+            return action, value
 
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
