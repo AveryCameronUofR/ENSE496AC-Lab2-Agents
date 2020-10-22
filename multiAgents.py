@@ -75,9 +75,9 @@ class ReflexAgent(Agent):
         newPos = successorGameState.getPacmanPosition()
         newFood = successorGameState.getFood()
         newGhostStates = successorGameState.getGhostStates()
-        #newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+        # newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
         possibleScore = successorGameState.getScore()
-        
+
         import time
         from util import manhattanDistance
         import random
@@ -87,7 +87,7 @@ class ReflexAgent(Agent):
         foodScore = 0
         ghostModifier = 10
         ghostScore = 0
-        scoreModifier  = 1
+        scoreModifier = 1
         foodList = newFood.asList()
         minDistance = 1000000
         if (newPos in foodList):
@@ -96,24 +96,24 @@ class ReflexAgent(Agent):
             dist = manhattanDistance(newPos, food)
             if (dist < minDistance):
                 minDistance = dist
-        foodScore = minDistance *foodDistanceModifier
+        foodScore = minDistance * foodDistanceModifier
         for ghost in newGhostStates:
             ghostPosition = ghost.configuration.getPosition()
             scared = ghost.scaredTimer
             dist = manhattanDistance(newPos, ghostPosition)
-            if (dist < 2 ):
+            if (dist < 2):
                 if (scared == 0):
                     ghostScore = -500
                 else:
                     ghostScore = ghostModifier/scared
             else:
                 ghostScore = dist * ghostModifier
-        #print(possibleScore)
+        # print(possibleScore)
         score = score + foodScore + ghostScore
-        #print(score)
+        # print(score)
         return score
         "*** YOUR CODE HERE ***"
-        #currentFood
+        # currentFood
 
 
 def scoreEvaluationFunction(currentGameState):
@@ -154,7 +154,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
     """
     # return the action to get to the score
 
-    def getAction(self, gameState, currDepth = -1, index = 0):
+    def getAction(self, gameState, currDepth=-1, index=0):
         """
         Returns the minimax action from the current gameState using self.depth
         and self.evaluationFunction.
@@ -186,14 +186,15 @@ class MinimaxAgent(MultiAgentSearchAgent):
             maximizingPlayer = True
         if currDepth == self.depth or gameState.isWin() or gameState.isLose():
             return ('Complete', self.evaluationFunction(gameState))
-        
+
         actions = gameState.getLegalActions(index)
         successors = []
         for action in actions:
             successor = gameState.generateSuccessor(index, action)
             tempIndex = index + 1
-            successors.append((action, self.getAction(successor, currDepth, tempIndex)))
-        
+            successors.append(
+                (action, self.getAction(successor, currDepth, tempIndex)))
+
         action = ''
         value = math.inf
         if (maximizingPlayer):
@@ -208,11 +209,10 @@ class MinimaxAgent(MultiAgentSearchAgent):
                 if (successorScore < value):
                     value = successorScore
                     action = successorAction
-        if currDepth == 0 and index == 0: 
+        if currDepth == 0 and index == 0:
             return action
-        else: 
+        else:
             return (action, value)
-        
 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
@@ -220,7 +220,8 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     Your minimax agent with alpha-beta pruning (question 3)
     """
     import math
-    def getAction(self, gameState, currDepth = -1, index = 0, a = -math.inf, b = math.inf):
+
+    def getAction(self, gameState, currDepth=-1, index=0, a=-math.inf, b=math.inf):
         """
         Returns the minimax action using self.depth and self.evaluationFunction
         """
@@ -233,44 +234,44 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             valueCheck = -math.inf
             currDepth += 1
             maximizingPlayer = True
-            
+
         if currDepth == self.depth or gameState.isWin() or gameState.isLose():
             return ('Complete', self.evaluationFunction(gameState))
-        
+
         successors = []
         actions = gameState.getLegalActions(index)
         for action in actions:
             successor = gameState.generateSuccessor(index, action)
             tempIndex = index + 1
-            _nextAction, value = self.getAction(successor, currDepth, tempIndex, a, b))
+            _nextAction, value = self.getAction(successor, currDepth, tempIndex, a, b)
             if (maximizingPlayer):
-                valueCheck = max(valueCheck, value)
-                a = max(a, value)
+                valueCheck=max(valueCheck, value)
+                a=max(a, value)
                 if (value > b):
                     return action, value
             else:
-                valueCheck = min(valueCheck, value)
-                b = min(b, value)
+                valueCheck=min(valueCheck, value)
+                b=min(b, value)
                 if (value < a):
                     return action, value
             successors.append((action, value))
-        
-        action = ''
-        value = math.inf
+
+        action=''
+        value=math.inf
         if (maximizingPlayer):
-            value = -value
+            value=-value
         for successorAction, successorScore in successors:
             if (maximizingPlayer):
                 if (successorScore > value):
-                    value = successorScore
-                    action = successorAction
+                    value=successorScore
+                    action=successorAction
             else:
                 if (successorScore < value):
-                    value = successorScore
-                    action = successorAction
-        if currDepth == 0 and index == 0: 
+                    value=successorScore
+                    action=successorAction
+        if currDepth == 0 and index == 0:
             return action
-        else: 
+        else:
             return action, value
 
 
@@ -290,42 +291,43 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         import math
         import random
         import math
-        index = index % gameState.getNumAgents()
-        maximizingPlayer = False
+        index=index % gameState.getNumAgents()
+        maximizingPlayer=False
         if index == 0:
             currDepth += 1
-            maximizingPlayer = True
+            maximizingPlayer=True
         if currDepth == self.depth or gameState.isWin() or gameState.isLose():
             return ('Complete', self.evaluationFunction(gameState))
-        
-        actions = gameState.getLegalActions(index)
-        actionCount = len(actions)
-        
-        successors = []
+
+        actions=gameState.getLegalActions(index)
+        actionCount=len(actions)
+
+        successors=[]
         for action in actions:
-            successor = gameState.generateSuccessor(index, action)
-            tempIndex = index + 1
-            successors.append((action, self.getAction(successor, currDepth, tempIndex)))
-        
-        action = ''
-        value = math.inf
+            successor=gameState.generateSuccessor(index, action)
+            tempIndex=index + 1
+            successors.append(
+                (action, self.getAction(successor, currDepth, tempIndex)))
+
+        action=''
+        value=math.inf
         if (maximizingPlayer):
-            value = -value
+            value=-value
             for successorAction, successorScore in successors:
-                successorScore = successorScore[1]
+                successorScore=successorScore[1]
                 if (maximizingPlayer):
                     if (successorScore > value):
-                        value = successorScore
-                        action = successorAction
+                        value=successorScore
+                        action=successorAction
         else:
-            value = 0
+            value=0
             for successorAction, successorScore in successors:
                 value += successorScore[1]
-            action = actions[random.randint(0,actionCount -1)]
-            value = float(value)/float(actionCount)
-        if currDepth == 0 and index == 0: 
+            action=actions[random.randint(0, actionCount - 1)]
+            value=float(value)/float(actionCount)
+        if currDepth == 0 and index == 0:
             return action
-        else: 
+        else:
             return (action, value)
 
 
@@ -341,4 +343,4 @@ def betterEvaluationFunction(currentGameState):
 
 
 # Abbreviation
-better = betterEvaluationFunction
+better=betterEvaluationFunction
