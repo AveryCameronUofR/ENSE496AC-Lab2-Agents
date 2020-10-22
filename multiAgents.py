@@ -228,37 +228,32 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         import math
         index = index % gameState.getNumAgents()
         maximizingPlayer = False
+        valueCheck = math.inf
         if index == 0:
+            valueCheck = -math.inf
             currDepth += 1
             maximizingPlayer = True
-        
+            
         if currDepth == self.depth or gameState.isWin() or gameState.isLose():
             return ('Complete', self.evaluationFunction(gameState))
         
-        actions = gameState.getLegalActions(index)
         successors = []
+        actions = gameState.getLegalActions(index)
         for action in actions:
             successor = gameState.generateSuccessor(index, action)
             tempIndex = index + 1
-            action, value = self.getAction(successor, currDepth, tempIndex, a, b)
+            _nextAction, value = self.getAction(successor, currDepth, tempIndex, a, b))
             if (maximizingPlayer):
+                valueCheck = max(valueCheck, value)
+                a = max(a, value)
                 if (value > b):
-                    if currDepth == 0 and index == 0: 
-                        return action
-                    else: 
-                        return action, value
+                    return action, value
             else:
+                valueCheck = min(valueCheck, value)
+                b = min(b, value)
                 if (value < a):
-                    if currDepth == 0 and index == 0: 
-                        return action
-                    else: 
-                        return action, value
-            if maximizingPlayer:
-                a = max(a,value)
-            else:
-                b = min(b,value)
-            if (action != 'Complete'):
-                successors.append((action, value))
+                    return action, value
+            successors.append((action, value))
         
         action = ''
         value = math.inf
