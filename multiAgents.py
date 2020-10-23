@@ -335,10 +335,87 @@ def betterEvaluationFunction(currentGameState):
     evaluation function (question 5).
 
     DESCRIPTION: <write something here so we know what you did>
-    """
-    "*** YOUR CODE HERE ***"
-    return currentGameState.getScore()
+    First we check the closest food, it is better to be close
+    to food than far away from it, after fiddling with the score
+    modifier, 10 seemed to provide the best results
 
+    Then check for Super pellets, these let us increase our score
+    by eating the ghosts, eating these is good but a secondary
+    goal, 10 also seemed a good modifier
+    
+    Then check the ghosts, if they are within on the same pos, reduce the 
+    score, -500, since that is a loss.
+
+    Then check the distance to ghosts, 
+    If they are withing 1 spot, that is dangerous, reduce the score
+    10 modifier again
+
+    If they are withing 10 spots, reduce score as this is a risk,
+    use 5 as a modifier
+    
+    if they are scared,
+    check and see if you can reach them in time and eat them 
+    this will increase the score and a modifier of 50 worked well.
+
+    Add these scores to the current game score,
+    since the current game score matters most this is great, 
+    since the others you can take 1 divided by the value and 
+    use a modifier these are small values but changes have
+    a large impact.
+
+    By adjusting the modifiers separately, the average score 
+    was able to be 1141.6
+    
+    """
+    from math import inf
+    currentPos = currentGameState.getPacmanPosition()
+    currentFood = currentGameState.getFood()
+    currentGhostStates = currentGameState.getGhostStates()
+    currentScaredTimes = [ghostState.scaredTimer for ghostState in currentGhostStates]
+    superPellets = currentGameState.getCapsules()
+    
+    foodList = currentFood.asList()
+    foodScore = 0 
+    if (len(foodList) > 0):
+        foodScore = 1/len(foodList) * 10
+    #check the closest food
+    minFoodDist = inf
+    for food in foodList:
+        distTemp = manhattanDistance(food, currentPos)
+        minFoodDist = min(minFoodDist, distTemp)
+    minFoodDist = 1/minFoodDist *10
+
+    #check the closest Super Pellet/Capsule
+    minSuperDist = inf
+    for superPellet in superPellets:
+        distTemp = manhattanDistance(superPellet, currentPos)
+        minSuperDist = min(minSuperDist, distTemp)
+    minSuperDist = 1/minSuperDist *10
+    #Check ghosts
+    ghostScore = 0
+    
+    i = 0
+    while (i < len(currentGhostStates)):
+        ghost = currentGhostStates[i]
+        scared = currentScaredTimes[i]
+        ghostPosition = ghost.getPosition()
+        #Get the distance from ghost to pacman
+        distGhost = manhattanDistance(ghostPosition, currentPos)
+        if (scared == 0):
+            #if distance is 0, it is a loss 
+            if (distGhost == 0):
+                ghost = -500
+            elif (distGhost < 2):               #this is dangerous
+                ghostScore = -1/distGhost*10
+            elif distGhost < 10:                #this is risky
+                ghostScore = -1/distGhost*5
+        else:                                   #you can maybe eat them!
+            if (scared > distGhost):
+                ghostScore = 40 / (scared - distGhost) * 50
+        i += 1
+    
+    #Return gameScore, food, closest food, closest Super Capsule and ghost scores 
+    return currentGameState.getScore() + foodScore + minFoodDist + minSuperDist + ghostScore
 
 # Abbreviation
 better = betterEvaluationFunction
