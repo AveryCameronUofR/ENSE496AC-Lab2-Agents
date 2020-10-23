@@ -70,6 +70,8 @@ class ReflexAgent(Agent):
         Print out these variables to see what you're getting, then combine them
         to create a masterful evaluation function.
         """
+
+        #Set up starting values
         successorGameState = currentGameState.generatePacmanSuccessor(action)
         newPos = successorGameState.getPacmanPosition()
         newFood = currentGameState.getFood()
@@ -81,11 +83,14 @@ class ReflexAgent(Agent):
         distScore = 0
         foodList = newFood.asList()
 
+        #Punish staying in the same place
         currentPos = currentGameState.getPacmanPosition()
         if (currentPos == newPos):
             score = -50
         else:
             foodScore = 50
+
+        #check the closest food(dist) and check the number of close pellets (distScore) 
         from math import inf
         dist = inf
         for food in foodList:
@@ -95,25 +100,33 @@ class ReflexAgent(Agent):
             else:
                 dist = min(dist, distTemp)
                 distScore += (10.0/distTemp)
+        #Scale number of close pellets
         distScore = distScore*5
+
+        #Check ghosts
         ghostScore = 0
         i = 0
         while (i < len(newGhostStates)):
             ghost = newGhostStates[i]
             scared = newScaredTimes[i]
             ghostPosition = ghost.getPosition()
+            #Get the distance from ghost to pacman
             distGhost = manhattanDistance(ghostPosition, newPos)
             if (distGhost < 2):
+                #if the ghost is close and can kill pacman, reduce score, otherwise increase it
                 if (scared == 0):
                     ghostScore = -500
                 else:
                     ghostScore = scared*5
+            #if the ghost is close but not too close, reduce score if it isn't scared
+            #if it is further than 10, ignore it, it is far away and we can focus food
             elif distGhost < 10:
                 if (scared):
                     ghostScore = distGhost * 5
                 else:
                     ghostScore = distGhost * -5
             i += 1
+        #Return food, closest food, distance pellets, ghost scores 
         return foodScore + ghostScore + distScore + score + dist
 
     def manhattanDistance(self, xy1, xy2):
@@ -164,14 +177,16 @@ class MinimaxAgent(MultiAgentSearchAgent):
         import math
         index = index % gameState.getNumAgents()
         maximizingPlayer = False
+        #if index is 0, maximizing agent, Pacman
         if index == 0:
             currDepth += 1
             maximizingPlayer = True
-
-        nextIndex = index + 1
+        
         if currDepth == self.depth or gameState.isWin() or gameState.isLose():
             return self.evaluationFunction(gameState)
-
+        
+        #Get legal actions of next agent and check successors
+        nextIndex = index + 1
         actions = gameState.getLegalActions(index)
         successors = []
         for action in actions:
@@ -183,10 +198,12 @@ class MinimaxAgent(MultiAgentSearchAgent):
         value = math.inf
         if (maximizingPlayer):
             value = -value
+        #update max/min value
         for successorAction, successorScore in successors:
             if (maximizingPlayer and successorScore > value) or (not maximizingPlayer and successorScore < value):
                 value = successorScore
                 action = successorAction
+        #if it is the start, pacman and depth 0 return action, otherwise use value for max and mins
         if currDepth == 0 and index == 0:
             return action
         else:
@@ -208,6 +225,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         index = index % gameState.getNumAgents()
         maximizingPlayer = False
         valueCheck = math.inf
+        #if index is 0, maximizing agent, Pacman
         if index == 0:
             valueCheck = -math.inf
             currDepth += 1
@@ -217,11 +235,13 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         if currDepth == self.depth or gameState.isWin() or gameState.isLose():
             return self.evaluationFunction(gameState)
 
+        #Get legal actions of next agent and check successors
         successors = []
         actions = gameState.getLegalActions(index)
         for action in actions:
             successor = gameState.generateSuccessor(index, action)
             value = self.getAction(successor, currDepth, tempIndex, a, b)
+            #Compare to alpha and beta as needed, prune by returning early, otherwise append
             if (maximizingPlayer):
                 valueCheck = max(valueCheck, value)
                 a = max(a, value)
@@ -238,10 +258,12 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         value = math.inf
         if (maximizingPlayer):
             value = -math.inf
+        #Update max/min of layer
         for successorAction, successorScore in successors:
             if (maximizingPlayer and successorScore > value) or (not maximizingPlayer and successorScore < value):
                 value = successorScore
                 action = successorAction
+        #return action if pacman depth 0, otherwise return max/min of layer
         if currDepth == 0 and index == 0:
             return action
         else:
@@ -272,10 +294,10 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
 
         if currDepth == self.depth or gameState.isWin() or gameState.isLose():
             return self.evaluationFunction(gameState)
-
+        
+        #Generate Successors from legal actions
         actions = gameState.getLegalActions(index)
         actionCount = len(actions)
-
         successors = []
         for action in actions:
             successor = gameState.generateSuccessor(index, action)
@@ -287,16 +309,20 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         value = math.inf
         if (maximizingPlayer):
             value = -value
+            #find max value
             for successorAction, successorScore in successors:
                 if maximizingPlayer and successorScore > value:
                     value = successorScore
                     action = successorAction
         else:
             value = 0
+            #Average score and pick a random action
             for successorAction, successorScore in successors:
                 value += successorScore
             action = actions[random.randint(0, actionCount - 1)]
             value = float(value)/float(actionCount)
+
+        #Return action if pacman and depth 0, value (max or random minimizing agent value)
         if currDepth == 0 and index == 0:
             return action
         else:
@@ -311,7 +337,7 @@ def betterEvaluationFunction(currentGameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    return currentGameState.getScore()
 
 
 # Abbreviation
