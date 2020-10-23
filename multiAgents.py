@@ -70,50 +70,55 @@ class ReflexAgent(Agent):
         Print out these variables to see what you're getting, then combine them
         to create a masterful evaluation function.
         """
-        # Useful information you can extract from a GameState (pacman.py)
         successorGameState = currentGameState.generatePacmanSuccessor(action)
         newPos = successorGameState.getPacmanPosition()
-        newFood = successorGameState.getFood()
+        newFood = currentGameState.getFood()
         newGhostStates = successorGameState.getGhostStates()
-        # newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
-        possibleScore = successorGameState.getScore()
-
-        import time
-        from util import manhattanDistance
-        import random
+        newScaredTimes = [
+            ghostState.scaredTimer for ghostState in newGhostStates]
         score = 0
-        foodModifier = 100000
-        foodDistanceModifier = 200
         foodScore = 0
-        ghostModifier = 10
-        ghostScore = 0
-        scoreModifier = 1
+        distScore = 0
         foodList = newFood.asList()
-        minDistance = 1000000
-        if (newPos in foodList):
-            score += 1*foodModifier
+
+        currentPos = currentGameState.getPacmanPosition()
+        if (currentPos == newPos):
+            score = -50
+        else:
+            foodScore = 50
+        from math import inf
+        dist = inf
         for food in foodList:
-            dist = manhattanDistance(newPos, food)
-            if (dist < minDistance):
-                minDistance = dist
-        foodScore = minDistance * foodDistanceModifier
-        for ghost in newGhostStates:
-            ghostPosition = ghost.configuration.getPosition()
-            scared = ghost.scaredTimer
-            dist = manhattanDistance(newPos, ghostPosition)
-            if (dist < 2):
+            distTemp = manhattanDistance(food, newPos)
+            if (distTemp == 0):
+                foodScore += 100
+            else:
+                dist = min(dist, distTemp)
+                distScore += (10.0/distTemp)
+        distScore = distScore*5
+        ghostScore = 0
+        i = 0
+        while (i < len(newGhostStates)):
+            ghost = newGhostStates[i]
+            scared = newScaredTimes[i]
+            ghostPosition = ghost.getPosition()
+            distGhost = manhattanDistance(ghostPosition, newPos)
+            if (distGhost < 2):
                 if (scared == 0):
                     ghostScore = -500
                 else:
-                    ghostScore = ghostModifier/scared
-            else:
-                ghostScore = dist * ghostModifier
-        # print(possibleScore)
-        score = score + foodScore + ghostScore
-        # print(score)
-        return score
-        "*** YOUR CODE HERE ***"
-        # currentFood
+                    ghostScore = scared*5
+            elif distGhost < 10:
+                if (scared):
+                    ghostScore = distGhost * 5
+                else:
+                    ghostScore = distGhost * -5
+            i += 1
+        return foodScore + ghostScore + distScore + score + dist
+
+    def manhattanDistance(self, xy1, xy2):
+        "Returns the Manhattan distance between points xy1 and xy2"
+        return abs(xy1[0] - xy2[0]) + abs(xy1[1] - xy2[1])
 
 
 def scoreEvaluationFunction(currentGameState):
@@ -171,7 +176,8 @@ class MinimaxAgent(MultiAgentSearchAgent):
         successors = []
         for action in actions:
             successor = gameState.generateSuccessor(index, action)
-            successors.append((action, self.getAction(successor, currDepth, nextIndex)))
+            successors.append(
+                (action, self.getAction(successor, currDepth, nextIndex)))
 
         action = ''
         value = math.inf
@@ -263,7 +269,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         if index == 0:
             currDepth += 1
             maximizingPlayer = True
-        
+
         if currDepth == self.depth or gameState.isWin() or gameState.isLose():
             return self.evaluationFunction(gameState)
 
